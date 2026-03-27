@@ -50,6 +50,10 @@ spec:
         gatewayAPI:
           enabled: true
 
+        encryption:
+          enabled: true
+          type: wireguard
+
         resources:
           requests:
             cpu: 100m
@@ -65,15 +69,8 @@ spec:
               cpu: 500m
               memory: 256Mi
 
-        encryption:
-          enabled: false
-
         hubble:
-          enabled: true
-          relay:
-            enabled: false
-          ui:
-            enabled: false
+          enabled: false
   destination:
     server: https://kubernetes.default.svc
     namespace: kube-system
