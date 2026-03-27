@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: cloudflared-tunnel
+  namespace: barnes-biz
+spec:
+  encryptedData:
+    TUNNEL_TOKEN: AgAlleeTmdEaYFMenJ2pB82isK00HFz0EMXwHSgCHem6iriOhtn6havsCnnrN26elquyDMm65kMEP5St/US1lx/4/kt8g9FffDVnMksaO648L0Ypna1zT+XZGV/qhYwO4aobA5kzRqAUBbwLRshzMqmkpy/j3GS0s3zhrBqVskUaOm33dCMeYdJc+Az1NYzm/pUHAe7gckjOyFd3h7lmErySMHH6cxcBh8v5xDnDRZj0SNn2Y80Ea0QJASDHXqvPkq9FiTWqy4Dz2p8FvlNnXJcix3Uq/ddGdNqfBLwMcFWyeaqTv+PIHZMFaFVVpMFdnDxsRtbrfIfiaVy29xSwRqUoMPobmPYYeW7m9IhovEOlRft63j13rw3FWJiOgftbRwJkYzLexbskVDrjXHUkGUq63I84IJaVVwSFxfEL74vcoAc4/gZq4ph1i3LJMxOY8vuwu/C4J6okuklqC0YYhjEL3UoQ8az7tsMGbNHHELeKNj7FqUCUA65X48UVKYida7xsyzzI/9K/qpsx9SVWizLwyCWbA8tcDOB3pzh9pYwzDAZvn9MbIblmbQF0Xr7Qlza+zBfJsPytH728TCnUGZKnMgIw9YV00RbXyurDSaSfOkV2bJO4sJZqAzol39pvNxa8LxXRnmGQuBukwEadiwTnMk4+GtkaTAC5BI4HMrpxpjI2DsrLSgRQl8dEqMybfTHbRBWUdP+o9aCBLycy4nHrqyWjUTndFK8gQURZgelwbCH/5GGXFfQiFWaxyiabk//u+GC+jDKOZvREKchVoj9zk9KnZv3maEo8ofvNlPoZFcpp/vh9ErFad2wORg4ibhipsyiED9R1PIdL7Wyi1Z4yyFrBra2nqTQdBa/DzjU+dWwA/kmbiVV+Yakqs+2/A1fwrxPVBF9Q4GUkntc5EOHe2g4HmHOIBLOF/tXcF27ykoLVI0DiypSN
+  template:
+    metadata:
+      name: cloudflared-tunnel
+      namespace: barnes-biz
