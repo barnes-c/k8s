@@ -25,7 +25,7 @@ variable "argocd_apps_repo" {
 variable "argocd_apps_revision" {
   description = "Git revision (branch, tag, commit) to track"
   type        = string
-  default     = "main"
+  default     = "master"
 }
 
 variable "argocd_apps_path" {
