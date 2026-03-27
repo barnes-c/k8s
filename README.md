@@ -1,6 +1,6 @@
 # k8s
 
-Kubernetes workloads for the barnes-lab cluster, managed via ArgoCD GitOps.
+Kubernetes workloads for my cluster, managed via ArgoCD GitOps.
 
 ## How It Works
 
