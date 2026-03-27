@@ -11,7 +11,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/barnes-c/k8s
-    targetRevision: main
+    targetRevision: master
     path: manifests/gateway-api-crds
   destination:
     server: https://kubernetes.default.svc

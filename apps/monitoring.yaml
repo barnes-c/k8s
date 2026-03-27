@@ -11,7 +11,7 @@ spec:
   generators:
     - git:
         repoURL: https://github.com/barnes-c/k8s
-        revision: main
+        revision: master
         files:
           - path: manifests/monitoring/*/config.json
   template:
@@ -28,7 +28,7 @@ spec:
             valueFiles:
               - $values/manifests/monitoring/{{ .name }}/values.yaml
         - repoURL: https://github.com/barnes-c/k8s
-          targetRevision: main
+          targetRevision: master
           ref: values
       destination:
         server: https://kubernetes.default.svc
@@ -64,7 +64,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/barnes-c/k8s
-    targetRevision: main
+    targetRevision: master
     path: manifests/monitoring
     directory:
       recurse: false
