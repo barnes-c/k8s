@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: https://helm.cilium.io
     chart: cilium
-    targetRevision: 1.17.3
+    targetRevision: 1.19.2
     helm:
       values: |
         securityContext:
@@ -44,9 +44,6 @@ spec:
         k8sServiceHost: localhost
         k8sServicePort: 7445
 
-        bpf:
-          hostLegacyRouting: true
-
         l2announcements:
           enabled: true
 
@@ -69,8 +66,7 @@ spec:
               memory: 256Mi
 
         encryption:
-          enabled: true
-          type: wireguard
+          enabled: false
 
         hubble:
           enabled: true

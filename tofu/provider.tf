@@ -4,6 +4,7 @@ provider "helm" {
   }
 }
 
-provider "kubernetes" {
+
+provider "kubectl" {
   config_path = var.kubeconfig_path
 }
