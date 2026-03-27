@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kubelet-csr-approver
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://postfinance.github.io/kubelet-csr-approver
+    chart: kubelet-csr-approver
+    targetRevision: 1.2.13
+    helm:
+      values: |
+        providerIpRanges:
+          - 192.168.1.0/24
+        bypassDnsResolution: true
+        maxExpirationSeconds: 604800
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kubelet-csr-approver
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
