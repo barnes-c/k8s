@@ -1,0 +1,91 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/barnes-c/k8s
+      targetRevision: main
+      path: manifests/argocd
+    - repoURL: https://argoproj.github.io/argo-helm
+      chart: argo-cd
+      targetRevision: 9.4.5
+      helm:
+        values: |
+          configs:
+            params:
+              server.insecure: true
+            cm:
+              url: https://argo.barnes.biz
+              admin.enabled: "false"
+              dex.config: |
+                connectors:
+                  - type: oidc
+                    id: authentik
+                    name: Authentik
+                    config:
+                      issuer: https://auth.barnes.biz/application/o/argocd/
+                      clientID: $argocd-oidc:dex.authentik.clientID
+                      clientSecret: $argocd-oidc:dex.authentik.clientSecret
+                      insecureEnableGroups: true
+                      scopes:
+                        - openid
+                        - profile
+                        - email
+                        - groups
+            rbac:
+              policy.csv: |
+                g, ArgoCD Admins, role:admin
+              policy.default: role:readonly
+          server:
+            replicas: 1
+            resources:
+              requests:
+                cpu: 50m
+                memory: 128Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi
+          controller:
+            replicas: 1
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 1000m
+                memory: 1Gi
+          repoServer:
+            replicas: 1
+            resources:
+              requests:
+                cpu: 50m
+                memory: 128Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi
+          applicationSet:
+            replicas: 1
+            resources:
+              requests:
+                cpu: 25m
+                memory: 64Mi
+              limits:
+                cpu: 200m
+                memory: 256Mi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

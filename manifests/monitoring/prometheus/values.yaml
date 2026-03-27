@@ -1,0 +1,36 @@
+fullnameOverride: prometheus
+
+server:
+  fullnameOverride: prometheus
+  retention: 7d
+  persistentVolume:
+    enabled: false
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+
+alertmanager:
+  enabled: false
+
+kube-state-metrics:
+  enabled: false
+
+prometheus-node-exporter:
+  enabled: false
+
+prometheus-pushgateway:
+  enabled: false
+
+extraScrapeConfigs: |
+  - job_name: node-exporter
+    static_configs:
+      - targets:
+          - node-exporter.monitoring.svc.cluster.local:9100
+  - job_name: kube-state-metrics
+    static_configs:
+      - targets:
+          - kube-state-metrics.monitoring.svc.cluster.local:8080

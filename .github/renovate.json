@@ -1,0 +1,88 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+        "config:recommended",
+        ":semanticCommits",
+        ":dependencyDashboard",
+        "helpers:pinGitHubActionDigests"
+    ],
+    "labels": [
+        "dependencies"
+    ],
+    "pinDigests": true,
+    "hostRules": [
+        {
+            "matchHost": "ghcr.io",
+            "hostType": "docker"
+        }
+    ],
+    "argocd": {
+        "managerFilePatterns": [
+            "/apps/.*\\.yaml$/"
+        ]
+    },
+    "kubernetes": {
+        "managerFilePatterns": [
+            "/manifests/.*\\.yaml$/"
+        ]
+    },
+    "terraform": {
+        "managerFilePatterns": [
+            "/tofu/.*\\.tf$/"
+        ]
+    },
+    "customManagers": [
+        {
+            "customType": "regex",
+            "fileMatch": [
+                "manifests/monitoring/.*/config\\.json$"
+            ],
+            "matchStrings": [
+                "\"repoURL\":\\s*\"(?<registryUrl>[^\"]+)\",\\s*\"chart\":\\s*\"(?<depName>[^\"]+)\",\\s*\"chartVersion\":\\s*\"(?<currentValue>[^\"]+)\""
+            ],
+            "datasourceTemplate": "helm"
+        }
+    ],
+    "packageRules": [
+        {
+            "matchManagers": [
+                "github-actions"
+            ],
+            "groupName": "github-actions"
+        },
+        {
+            "matchManagers": [
+                "docker"
+            ],
+            "matchDatasources": [
+                "docker"
+            ],
+            "groupName": "docker-images"
+        },
+        {
+            "matchManagers": [
+                "argocd"
+            ],
+            "groupName": "argocd-apps",
+            "labels": [
+                "dependencies",
+                "argocd"
+            ]
+        },
+        {
+            "matchManagers": [
+                "argocd"
+            ],
+            "matchDepNames": [
+                "https://github.com/barnes-c/k8s"
+            ],
+            "enabled": false
+        },
+        {
+            "matchUpdateTypes": [
+                "patch"
+            ],
+            "automerge": true
+        }
+    ]
+}

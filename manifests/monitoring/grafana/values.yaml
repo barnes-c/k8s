@@ -1,0 +1,91 @@
+fullnameOverride: grafana
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+persistence:
+  enabled: true
+  size: 1Gi
+
+sidecar:
+  dashboards:
+    enabled: true
+    label: grafana_dashboard
+    labelValue: "1"
+    folderAnnotation: grafana_folder
+    provider:
+      foldersFromFilesStructure: true
+
+grafana.ini:
+  server:
+    domain: monitoring.barnes.biz
+    root_url: https://monitoring.barnes.biz
+  security:
+    disable_initial_admin_creation: true
+  auth:
+    disable_login_form: true
+    signout_redirect_url: https://auth.barnes.biz/application/o/grafana/end-session/
+  auth.generic_oauth:
+    enabled: true
+    name: Authentik
+    allow_sign_up: true
+    auto_login: true
+    client_id: ${GF_AUTH_GENERIC_OAUTH_CLIENT_ID}
+    client_secret: ${GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET}
+    scopes: openid profile email
+    auth_url: https://auth.barnes.biz/application/o/authorize/
+    token_url: https://auth.barnes.biz/application/o/token/
+    api_url: https://auth.barnes.biz/application/o/userinfo/
+    role_attribute_path: >-
+      contains(groups, 'Grafana Admins') && 'Admin' ||
+      contains(groups, 'Grafana Editors') && 'Editor' ||
+      'Viewer'
+
+dashboardProviders:
+  dashboardproviders.yaml:
+    apiVersion: 1
+    providers:
+      - name: infrastructure
+        orgId: 1
+        folder: Infrastructure
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/infrastructure
+      - name: kubernetes
+        orgId: 1
+        folder: Kubernetes
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/kubernetes
+
+dashboards:
+  infrastructure:
+    node-exporter-full:
+      gnetId: 1860
+      revision: 37
+      datasource: Prometheus
+  kubernetes:
+    k8s-views-pods:
+      gnetId: 15760
+      revision: 37
+      datasource: Prometheus
+
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        uid: prometheus
+        type: prometheus
+        url: http://prometheus.monitoring.svc.cluster.local
+        access: proxy
+        isDefault: true

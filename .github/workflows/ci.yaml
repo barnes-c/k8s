@@ -1,0 +1,69 @@
+---
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  yaml:
+    name: YAML Lint
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: ibiqlik/action-yamllint@2576378a8e339169678f9939646ee3ee325e845c # v3
+        with:
+          config_file: .github/.yamllint.yaml
+
+  kubernetes:
+    name: Kubernetes Validation
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Validate manifests
+        shell: bash
+        run: |
+          CRDS="https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json"
+
+          docker run --rm -v "$PWD:/work" -w /work ghcr.io/yannh/kubeconform:v0.6.7-alpine \
+            -strict -summary \
+            -schema-location default \
+            -schema-location "$CRDS" \
+            apps/*.yaml
+
+  markdown:
+    name: Markdown
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: DavidAnson/markdownlint-cli2-action@07035fd053f7be764496c0f8d8f9f41f98305101 # v22
+        with:
+          globs: "**/*.md"
+          config: .github/.markdownlint.json
+
+  security:
+    name: Security
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - name: Trivy - Secrets
+        uses: aquasecurity/trivy-action@e368e328979b113139d6f9068e03accaed98a518 # 0.34.1
+        with:
+          scan-type: fs
+          scanners: secret
+          exit-code: 1
+      - name: Trivy - IaC Misconfigurations
+        uses: aquasecurity/trivy-action@e368e328979b113139d6f9068e03accaed98a518 # 0.34.1
+        with:
+          scan-type: config
+          exit-code: 1
+          trivy-config: .github/trivy.yaml
+          trivyignores: .github/.trivyignore
