@@ -1,5 +1,7 @@
 fullnameOverride: grafana
 
+envFromSecret: grafana-oidc
+
 resources:
   requests:
     cpu: 50m
