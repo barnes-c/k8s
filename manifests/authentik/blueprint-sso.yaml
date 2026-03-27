@@ -1,0 +1,155 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: authentik-blueprints
+  namespace: authentik
+stringData:
+  sso.yaml: |
+    version: 1
+    metadata:
+      name: SSO Applications
+
+    entries:
+      # Groups
+      - model: authentik_core.group
+        id: grafana-admins
+        state: present
+        identifiers:
+          name: Grafana Admins
+
+      - model: authentik_core.group
+        id: grafana-editors
+        state: present
+        identifiers:
+          name: Grafana Editors
+
+      - model: authentik_core.group
+        id: argocd-admins
+        state: present
+        identifiers:
+          name: ArgoCD Admins
+
+      # Grafana
+      - model: authentik_providers_oauth2.oauth2provider
+        id: grafana-provider
+        state: present
+        identifiers:
+          name: Grafana
+        attrs:
+          authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-explicit-consent]]
+          invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+          client_type: confidential
+          client_id: !Env GRAFANA_CLIENT_ID
+          client_secret: !Env GRAFANA_CLIENT_SECRET
+          redirect_uris:
+            - url: "https://monitoring.barnes.biz/login/generic_oauth"
+              matching_mode: "strict"
+          signing_key: !Find [authentik_crypto.certificatekeypair, [name, "authentik Self-signed Certificate"]]
+          property_mappings:
+            - !Find [authentik_providers_oauth2.scopemapping, [scope_name, openid]]
+            - !Find [authentik_providers_oauth2.scopemapping, [scope_name, email]]
+            - !Find [authentik_providers_oauth2.scopemapping, [scope_name, profile]]
+
+      - model: authentik_core.application
+        id: grafana-app
+        state: present
+        identifiers:
+          slug: grafana
+        attrs:
+          name: Grafana
+          provider: !KeyOf grafana-provider
+          meta_launch_url: https://monitoring.barnes.biz
+
+      # ArgoCD
+      - model: authentik_providers_oauth2.oauth2provider
+        id: argocd-provider
+        state: present
+        identifiers:
+          name: ArgoCD
+        attrs:
+          authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-explicit-consent]]
+          invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+          client_type: confidential
+          client_id: !Env ARGOCD_CLIENT_ID
+          client_secret: !Env ARGOCD_CLIENT_SECRET
+          redirect_uris:
+            - url: "https://argo.barnes.biz/api/dex/callback"
+              matching_mode: "strict"
+          signing_key: !Find [authentik_crypto.certificatekeypair, [name, "authentik Self-signed Certificate"]]
+          property_mappings:
+            - !Find [authentik_providers_oauth2.scopemapping, [scope_name, openid]]
+            - !Find [authentik_providers_oauth2.scopemapping, [scope_name, email]]
+            - !Find [authentik_providers_oauth2.scopemapping, [scope_name, profile]]
+
+      - model: authentik_core.application
+        id: argocd-app
+        state: present
+        identifiers:
+          slug: argocd
+        attrs:
+          name: ArgoCD
+          provider: !KeyOf argocd-provider
+          meta_launch_url: https://argo.barnes.biz
+
+      # Immich
+      - model: authentik_providers_oauth2.oauth2provider
+        id: immich-provider
+        state: present
+        identifiers:
+          name: Immich
+        attrs:
+          authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-explicit-consent]]
+          invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+          client_type: confidential
+          client_id: !Env IMMICH_CLIENT_ID
+          client_secret: !Env IMMICH_CLIENT_SECRET
+          redirect_uris:
+            - url: "https://immich.barnes.biz/auth/login"
+              matching_mode: "strict"
+            - url: "app.immich:/"
+              matching_mode: "strict"
+          signing_key: !Find [authentik_crypto.certificatekeypair, [name, "authentik Self-signed Certificate"]]
+          property_mappings:
+            - !Find [authentik_providers_oauth2.scopemapping, [scope_name, openid]]
+            - !Find [authentik_providers_oauth2.scopemapping, [scope_name, email]]
+            - !Find [authentik_providers_oauth2.scopemapping, [scope_name, profile]]
+
+      - model: authentik_core.application
+        id: immich-app
+        state: present
+        identifiers:
+          slug: immich
+        attrs:
+          name: Immich
+          provider: !KeyOf immich-provider
+          meta_launch_url: https://immich.barnes.biz
+
+      # Website Dashboard
+      - model: authentik_providers_proxy.proxyprovider
+        id: website-dashboard-provider
+        state: present
+        identifiers:
+          name: Website Dashboard
+        attrs:
+          authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-explicit-consent]]
+          invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+          mode: forward_single
+          external_host: https://barnes.biz
+
+      - model: authentik_core.application
+        id: website-dashboard-app
+        state: present
+        identifiers:
+          slug: website-dashboard
+        attrs:
+          name: Website Dashboard
+          provider: !KeyOf website-dashboard-provider
+          meta_launch_url: https://barnes.biz/dashboard
+
+      - model: authentik_outposts.outpost
+        identifiers:
+          name: authentik Embedded Outpost
+        state: present
+        attrs:
+          providers:
+            - !KeyOf website-dashboard-provider

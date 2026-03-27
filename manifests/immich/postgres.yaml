@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: immich-postgres
+  namespace: immich
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: immich-postgres
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: immich-postgres
+    spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: postgres
+          image: tensorchord/pgvecto-rs:pg16-v0.2.0@sha256:592cac7b88a6443a9b06dfc0248b847ee3b20971244be3ea9bf259b01fe1621e
+          securityContext:
+            readOnlyRootFilesystem: true
+          envFrom:
+            - secretRef:
+                name: immich-postgres-credentials
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: immich-postgres-credentials
+                  key: DB_USERNAME
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: immich-postgres-credentials
+                  key: DB_PASSWORD
+            - name: POSTGRES_DB
+              value: immich
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+              subPath: pgdata
+            - name: tmp
+              mountPath: /tmp
+            - name: run
+              mountPath: /var/run/postgresql
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: immich-postgres-data
+        - name: tmp
+          emptyDir: {}
+        - name: run
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: immich-postgres
+  namespace: immich
+spec:
+  selector:
+    app: immich-postgres
+  ports:
+    - port: 5432
+      targetPort: 5432

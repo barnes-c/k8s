@@ -1,0 +1,107 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: authentik
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/barnes-c/k8s
+      targetRevision: master
+      path: manifests/authentik
+    - repoURL: https://charts.goauthentik.io
+      chart: authentik
+      targetRevision: 2026.2.0
+      helm:
+        values: |
+          global:
+            envFrom:
+              - secretRef:
+                  name: authentik-credentials
+              - secretRef:
+                  name: authentik-oidc-clients
+
+          authentik:
+            secret_key: ""
+            postgresql:
+              password: ""
+
+          server:
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 500m
+                memory: 1Gi
+            startupProbe:
+              periodSeconds: 10
+              failureThreshold: 120
+              timeoutSeconds: 5
+            livenessProbe:
+              timeoutSeconds: 5
+            readinessProbe:
+              timeoutSeconds: 5
+            volumes:
+              - name: custom-blueprints
+                secret:
+                  secretName: authentik-blueprints
+            volumeMounts:
+              - name: custom-blueprints
+                mountPath: /blueprints/custom
+
+          worker:
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 500m
+                memory: 1Gi
+            startupProbe:
+              periodSeconds: 10
+              failureThreshold: 120
+              timeoutSeconds: 5
+            livenessProbe:
+              timeoutSeconds: 5
+            readinessProbe:
+              timeoutSeconds: 5
+            volumes:
+              - name: custom-blueprints
+                secret:
+                  secretName: authentik-blueprints
+            volumeMounts:
+              - name: custom-blueprints
+                mountPath: /blueprints/custom
+
+          postgresql:
+            enabled: true
+            auth:
+              existingSecret: authentik-credentials
+              secretKeys:
+                adminPasswordKey: AUTHENTIK_POSTGRESQL__PASSWORD
+                userPasswordKey: AUTHENTIK_POSTGRESQL__PASSWORD
+            primary:
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+              persistence:
+                enabled: true
+                storageClass: longhorn
+                size: 5Gi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: authentik
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
