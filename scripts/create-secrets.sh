@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Generates and seals all cluster secrets.
+# Prerequisites: kubectl, kubeseal (connected to cluster)
+
+MANIFESTS="$(cd "$(dirname "$0")/../manifests" && pwd)"
+
+rand32() {
+  openssl rand -base64 48 | tr -dc 'a-zA-Z0-9' | head -c 32
+}
+
+seal() {
+  local namespace="$1"
+  local name="$2"
+  local outfile="$3"
+  shift 3
+  kubectl create secret generic "$name" \
+    --namespace "$namespace" \
+    --dry-run=client -o yaml \
+    "$@" \
+    | kubeseal --format yaml \
+    --controller-namespace sealed-secrets \
+    > "$outfile"
+  echo "  -> $outfile"
+}
+
+prompt() {
+  local var="$1"
+  local prompt_text="$2"
+  local silent="${3:-true}"
+  if [[ "$silent" == "true" ]]; then
+    read -r -s -p "$prompt_text: " "$var"; echo
+  else
+    read -r -p "$prompt_text: " "$var"
+  fi
+}
+
+echo "=== Generating random secrets ==="
+
+IMMICH_DB_USER=$(rand32)
+IMMICH_DB_PASS=$(rand32)
+AUTHENTIK_DB_PASS=$(rand32)
+AUTHENTIK_SECRET_KEY=$(rand32)
+ARGOCD_CLIENT_ID=$(rand32)
+ARGOCD_CLIENT_SECRET=$(rand32)
+GRAFANA_CLIENT_ID=$(rand32)
+GRAFANA_CLIENT_SECRET=$(rand32)
+IMMICH_CLIENT_ID=$(rand32)
+IMMICH_CLIENT_SECRET=$(rand32)
+
+echo "=== Prompting for external credentials ==="
+
+prompt CF_API_TOKEN        "Cloudflare API token (cert-manager)"
+prompt AUTHENTIK_TUNNEL    "Cloudflare tunnel token (authentik/cloudflared)"
+prompt BARNES_BIZ_TUNNEL   "Cloudflare tunnel token (barnes-biz/cloudflared)"
+prompt SMTP_USER           "SMTP username (barnes-biz)" false
+prompt SMTP_PASS           "SMTP password (barnes-biz)"
+
+echo ""
+echo "=== Sealing secrets ==="
+
+
+seal immich immich-postgres-credentials \
+  "$MANIFESTS/immich/immich-postgres-credentials.yaml" \
+  --from-literal=DB_USERNAME="$IMMICH_DB_USER" \
+  --from-literal=DB_PASSWORD="$IMMICH_DB_PASS"
+
+seal authentik authentik-credentials \
+  "$MANIFESTS/authentik/authentik-credentials.yaml" \
+  --from-literal=AUTHENTIK_POSTGRESQL__PASSWORD="$AUTHENTIK_DB_PASS" \
+  --from-literal=AUTHENTIK_SECRET_KEY="$AUTHENTIK_SECRET_KEY"
+
+seal authentik authentik-oidc-clients \
+  "$MANIFESTS/authentik/authentik-oidc-clients.yaml" \
+  --from-literal=ARGOCD_CLIENT_ID="$ARGOCD_CLIENT_ID" \
+  --from-literal=ARGOCD_CLIENT_SECRET="$ARGOCD_CLIENT_SECRET" \
+  --from-literal=GRAFANA_CLIENT_ID="$GRAFANA_CLIENT_ID" \
+  --from-literal=GRAFANA_CLIENT_SECRET="$GRAFANA_CLIENT_SECRET" \
+  --from-literal=IMMICH_CLIENT_ID="$IMMICH_CLIENT_ID" \
+  --from-literal=IMMICH_CLIENT_SECRET="$IMMICH_CLIENT_SECRET"
+
+seal cert-manager cloudflare-api-token \
+  "$MANIFESTS/cert-manager/cloudflare-api-token.yaml" \
+  --from-literal=api-token="$CF_API_TOKEN"
+
+seal authentik cloudflared-tunnel \
+  "$MANIFESTS/authentik/cloudflared-tunnel.yaml" \
+  --from-literal=TUNNEL_TOKEN="$AUTHENTIK_TUNNEL"
+
+seal barnes-biz cloudflared-tunnel \
+  "$MANIFESTS/barnes-biz/cloudflared-tunnel.yaml" \
+  --from-literal=TUNNEL_TOKEN="$BARNES_BIZ_TUNNEL"
+
+seal barnes-biz smtp-credentials \
+  "$MANIFESTS/barnes-biz/smtp-credentials.yaml" \
+  --from-literal=SMTP_USER="$SMTP_USER" \
+  --from-literal=SMTP_PASS="$SMTP_PASS"
+
+seal monitoring grafana-oidc \
+  "$MANIFESTS/monitoring/grafana/grafana-oidc.yaml" \
+  --from-literal=GF_AUTH_GENERIC_OAUTH_CLIENT_ID="$GRAFANA_CLIENT_ID" \
+  --from-literal=GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET="$GRAFANA_CLIENT_SECRET"
+
+seal argocd argocd-oidc \
+  "$MANIFESTS/argocd/argocd-oidc.yaml" \
+  --from-literal=dex.authentik.clientID="$ARGOCD_CLIENT_ID" \
+  --from-literal=dex.authentik.clientSecret="$ARGOCD_CLIENT_SECRET"
+
+
+echo ""
+echo "Done. Review the files, then commit and push."
