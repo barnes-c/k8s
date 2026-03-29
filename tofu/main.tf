@@ -16,7 +16,6 @@ locals {
     k8sServicePort       = 7445
     l2announcements      = { enabled = true }
     gatewayAPI           = { enabled = true }
-    encryption           = { enabled = true, type = "wireguard" }
     resources            = { requests = { cpu = "100m", memory = "256Mi" } }
     operator = {
       replicas  = 1

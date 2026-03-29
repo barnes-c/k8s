@@ -50,10 +50,6 @@ spec:
         gatewayAPI:
           enabled: true
 
-        encryption:
-          enabled: true
-          type: wireguard
-
         resources:
           requests:
             cpu: 100m
