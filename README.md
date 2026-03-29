@@ -22,5 +22,4 @@ tofu init
 tofu apply 
 ```
 
-This installs Cilium and ArgoCD, then polls until the ArgoCD CRDs are registered before
-creating the `apps-root` Application. ArgoCD takes over from there and syncs everything in `apps/`.
+This installs Cilium and ArgoCD. ArgoCD takes over from there and syncs everything in `apps/`.
