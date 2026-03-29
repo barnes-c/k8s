@@ -54,6 +54,9 @@ spec:
                 memory: 512Mi
           controller:
             replicas: 1
+            env:
+              - name: ARGOCD_SYNC_WAVE_DELAY
+                value: "30"
             resources:
               requests:
                 cpu: 100m

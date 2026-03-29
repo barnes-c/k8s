@@ -16,7 +16,7 @@ spec:
       values: |
         defaultSettings:
           defaultDataPath: /var/mnt/storage0
-          defaultReplicaCount: "2"
+          defaultReplicaCount: "1"
         preUpgradeChecker:
           jobEnabled: false
         longhornManager:
