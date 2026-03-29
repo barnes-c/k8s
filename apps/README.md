@@ -13,6 +13,7 @@ Applications are deployed in order using `argocd.argoproj.io/sync-wave` annotati
 |------|---------------------|----------------------------|
 | -3   | Cilium              | CNI / networking           |
 | -2   | Gateway API CRDs    | Gateway API definitions    |
+| -2   | Kubelet CSR Approver| Kubelet cert approval      |
 | -2   | Longhorn            | Storage                    |
 | -1   | Cert-Manager        | TLS certificates           |
 | -1   | Gateway             | Gateway API infrastructure |
