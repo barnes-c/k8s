@@ -54,8 +54,10 @@ echo "=== Prompting for external credentials ==="
 prompt CF_API_TOKEN        "Cloudflare API token (cert-manager)"
 prompt AUTHENTIK_TUNNEL    "Cloudflare tunnel token (authentik/cloudflared)"
 prompt BARNES_BIZ_TUNNEL   "Cloudflare tunnel token (barnes-biz/cloudflared)"
-prompt SMTP_USER           "SMTP username (barnes-biz)" false
-prompt SMTP_PASS           "SMTP password (barnes-biz)"
+prompt SMTP_USER             "SMTP username (barnes-biz)" false
+prompt SMTP_PASS             "SMTP password (barnes-biz)"
+prompt STRAVA_CLIENT_SECRET  "Strava client secret"
+prompt STRAVA_REFRESH_TOKEN  "Strava refresh token"
 
 echo ""
 echo "=== Sealing secrets ==="
@@ -106,6 +108,12 @@ seal argocd argocd-oidc \
   "$MANIFESTS/argocd/argocd-oidc.yaml" \
   --from-literal=dex.authentik.clientID="$ARGOCD_CLIENT_ID" \
   --from-literal=dex.authentik.clientSecret="$ARGOCD_CLIENT_SECRET"
+
+# grafana-strava
+seal monitoring grafana-strava \
+  "$MANIFESTS/monitoring/grafana-strava.yaml" \
+  --from-literal=STRAVA_CLIENT_SECRET="$STRAVA_CLIENT_SECRET" \
+  --from-literal=STRAVA_REFRESH_TOKEN="$STRAVA_REFRESH_TOKEN"
 
 
 echo ""

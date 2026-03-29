@@ -1,6 +1,14 @@
 fullnameOverride: grafana
 
-envFromSecret: grafana-oidc
+plugins:
+  - grafana-strava-datasource
+
+env:
+  GF_PROVISIONING_ENABLE_ENV_EXPANSION: "true"
+
+envFromSecrets:
+  - name: grafana-oidc
+  - name: grafana-strava
 
 resources:
   requests:
@@ -68,6 +76,14 @@ dashboardProviders:
         editable: true
         options:
           path: /var/lib/grafana/dashboards/kubernetes
+      - name: strava
+        orgId: 1
+        folder: Strava
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/strava
 
 dashboards:
   infrastructure:
@@ -91,3 +107,12 @@ datasources:
         url: http://prometheus.monitoring.svc.cluster.local
         access: proxy
         isDefault: true
+      - name: Strava
+        uid: strava
+        type: grafana-strava-datasource
+        access: proxy
+        jsonData:
+          clientID: "115101"
+        secureJsonData:
+          clientSecret: ${STRAVA_CLIENT_SECRET}
+          refreshToken: ${STRAVA_REFRESH_TOKEN}
