@@ -54,6 +54,7 @@ echo "=== Prompting for external credentials ==="
 prompt CF_API_TOKEN        "Cloudflare API token (cert-manager)"
 prompt AUTHENTIK_TUNNEL    "Cloudflare tunnel token (authentik/cloudflared)"
 prompt BARNES_BIZ_TUNNEL   "Cloudflare tunnel token (barnes-biz/cloudflared)"
+prompt MONITORING_TUNNEL   "Cloudflare tunnel token (monitoring/cloudflared)"
 prompt SMTP_USER             "SMTP username (barnes-biz)" false
 prompt SMTP_PASS             "SMTP password (barnes-biz)"
 prompt STRAVA_CLIENT_SECRET  "Strava client secret"
@@ -93,6 +94,10 @@ seal authentik cloudflared-tunnel \
 seal barnes-biz cloudflared-tunnel \
   "$MANIFESTS/barnes-biz/cloudflared-tunnel.yaml" \
   --from-literal=TUNNEL_TOKEN="$BARNES_BIZ_TUNNEL"
+
+seal monitoring cloudflared-tunnel \
+  "$MANIFESTS/monitoring/cloudflared-tunnel.yaml" \
+  --from-literal=TUNNEL_TOKEN="$MONITORING_TUNNEL"
 
 seal barnes-biz smtp-credentials \
   "$MANIFESTS/barnes-biz/smtp-credentials.yaml" \

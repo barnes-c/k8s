@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: cloudflared-tunnel
+  namespace: monitoring
+spec:
+  encryptedData:
+    TUNNEL_TOKEN: AgB9Skxn2sMxLQCXi+AsykapRMs6L7rczuvM2UzaSbjkEJoW2N5zXkSylAIhGmXXcQb3U4KPuyFlGbzD8gwmV0UuODvcKBCwHy1pg4qxC2YeIYITbBacmqWg50ZkwvXcdjuEhXmU1T/P77vEvujdSDWZFiZON319JcFItRJ2S51v5t6OIgmZcNqt2i/uEkWZdeN3rSjbgmJr59I/lXQ/K5zGjp7tq9nFnGlobOoA6QsXMED9lXTpX5SDuC7lCQzLOCHbpl90/hHjlGUBBAia7Z869uPvWFPwLXuxWmBxgAHb5QnLR7bOHYgMZcMo8DK1k5pEV7w+DBPBGQcxgltFvYUYcZG5ZbOrVBLhQ/yU3jbqdDWRFhqhf26YY72iIBmjn3oAfSIK8Eh+5Ee5kK1NZ9BZBF6tQEFT0wO1UZNNxMdeXABeNGG7Z6InYcK62T/qU+p9ysNYGqEtVwFj43mDXZyySRiwWO46BsxSisj7dlLlvQJizqSqKs6sfoC7Ijdx6pb33s82ER3/KIrosDepZIVR1QNgLyun3AMdpE50SzKM0CkZz7u0xe4FJF21f21DzG/RDjuLMlyOWZcMYuuzCbaX4VGuCIeixz6gBZvj9WxffaLrXUwBThdp2RLmyZxGvYYbMBRziTFrtO4FyTOkaIWEjX5jlBsEiq+cymwlwMs1xySM7+D4gBKLM/6d0MAtK28=
+  template:
+    metadata:
+      name: cloudflared-tunnel
+      namespace: monitoring
