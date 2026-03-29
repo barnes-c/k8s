@@ -25,6 +25,7 @@ seal() {
   echo "  -> $outfile"
 }
 
+
 prompt() {
   local var="$1"
   local prompt_text="$2"
@@ -113,6 +114,19 @@ seal argocd argocd-oidc \
   "$MANIFESTS/argocd/argocd-oidc.yaml" \
   --from-literal=dex.authentik.clientID="$ARGOCD_CLIENT_ID" \
   --from-literal=dex.authentik.clientSecret="$ARGOCD_CLIENT_SECRET"
+# ArgoCD requires this label to read the secret from dex.config
+python3 - "$MANIFESTS/argocd/argocd-oidc.yaml" <<'PYEOF'
+import sys, re
+path = sys.argv[1]
+content = open(path).read()
+if 'app.kubernetes.io/part-of: argocd' not in content:
+    content = re.sub(
+        r'(  template:\n    metadata:\n      name: argocd-oidc\n      namespace: argocd\n)',
+        r'\1      labels:\n        app.kubernetes.io/part-of: argocd\n',
+        content
+    )
+    open(path, 'w').write(content)
+PYEOF
 
 # grafana-strava
 seal monitoring grafana-strava \
