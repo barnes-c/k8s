@@ -107,6 +107,11 @@ datasources:
         url: http://prometheus.monitoring.svc.cluster.local
         access: proxy
         isDefault: true
+      - name: Loki
+        uid: loki
+        type: loki
+        url: http://loki.monitoring.svc.cluster.local:3100
+        access: proxy
       - name: Strava
         uid: strava
         type: grafana-strava-datasource
