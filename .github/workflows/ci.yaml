@@ -39,6 +39,17 @@ jobs:
             -schema-location "$CRDS" \
             apps/*.yaml
 
+  opentofu:
+    name: OpenTofu
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: opentofu/setup-opentofu@fc711fa910b93cba0f3fbecaafc9f42fd0c411cb # v2.0.0
+      - run: cd tofu
+      - run: tofu fmt -check -recursive
+      - run: tofu init -input=false
+      - run: tofu validate
+
   markdown:
     name: Markdown
     runs-on: ubuntu-24.04
