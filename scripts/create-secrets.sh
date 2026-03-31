@@ -152,7 +152,7 @@ seal barnes-biz smtp-credentials \
   --from-literal=SMTP_PASS="$SMTP_PASS"
 
 seal monitoring grafana-oidc \
-  "$MANIFESTS/monitoring/grafana/grafana-oidc.yaml" \
+  "$MANIFESTS/monitoring/grafana-oidc.yaml" \
   --from-literal=GF_AUTH_GENERIC_OAUTH_CLIENT_ID="$GRAFANA_CLIENT_ID" \
   --from-literal=GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET="$GRAFANA_CLIENT_SECRET"
 
