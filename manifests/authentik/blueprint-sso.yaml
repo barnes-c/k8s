@@ -153,3 +153,11 @@ stringData:
         attrs:
           providers:
             - !KeyOf website-dashboard-provider
+
+      # Tenant: enable password reset flow
+      - model: authentik_tenants.tenant
+        state: present
+        identifiers:
+          default: true
+        attrs:
+          flow_recovery: !Find [authentik_flows.flow, [slug, default-recovery-flow]]
