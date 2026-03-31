@@ -58,8 +58,10 @@ prompt BARNES_BIZ_TUNNEL   "Cloudflare tunnel token (barnes-biz/cloudflared)"
 prompt MONITORING_TUNNEL   "Cloudflare tunnel token (monitoring/cloudflared)"
 prompt SMTP_USER             "SMTP username (barnes-biz)" false
 prompt SMTP_PASS             "SMTP password (barnes-biz)"
-prompt STRAVA_CLIENT_SECRET  "Strava client secret"
-prompt STRAVA_REFRESH_TOKEN  "Strava refresh token"
+prompt STRAVA_CLIENT_SECRET   "Strava client secret (account 115101)"
+prompt STRAVA_REFRESH_TOKEN   "Strava refresh token (account 115101)"
+prompt STRAVA2_CLIENT_SECRET  "Strava client secret (account 196370)"
+prompt STRAVA2_REFRESH_TOKEN  "Strava refresh token (account 196370)"
 
 echo ""
 echo "=== Sealing secrets ==="
@@ -83,6 +85,50 @@ seal authentik authentik-oidc-clients \
   --from-literal=GRAFANA_CLIENT_SECRET="$GRAFANA_CLIENT_SECRET" \
   --from-literal=IMMICH_CLIENT_ID="$IMMICH_CLIENT_ID" \
   --from-literal=IMMICH_CLIENT_SECRET="$IMMICH_CLIENT_SECRET"
+
+_immich_config_tmp=$(mktemp)
+cat > "$_immich_config_tmp" <<EOF
+{
+  "oauth": {
+    "enabled": true,
+    "issuerUrl": "https://authentik.barnes.biz/application/o/immich/",
+    "clientId": "$IMMICH_CLIENT_ID",
+    "clientSecret": "$IMMICH_CLIENT_SECRET",
+    "callbackUrl": "https://immich.barnes.biz/auth/login",
+    "scope": "openid email profile",
+    "signingAlgorithm": "RS256",
+    "storageLabelClaim": "preferred_username",
+    "buttonText": "Login with Authentik",
+    "autoRegister": true,
+    "autoLaunch": false,
+    "mobileOverrideEnabled": false,
+    "mobileRedirectUri": ""
+  },
+  "passwordLogin": {
+    "enabled": true
+  },
+  "machineLearning": {
+    "enabled": false
+  },
+  "server": {
+    "externalDomain": "https://immich.barnes.biz",
+    "loginPageMessage": ""
+  },
+  "storageTemplate": {
+    "enabled": true,
+    "template": "{{y}}/{{y}}-{{MM}}-{{dd}}/{{filename}}"
+  }
+}
+EOF
+kubectl create secret generic immich-config \
+  --namespace immich \
+  --dry-run=client -o yaml \
+  --from-file=immich.json="$_immich_config_tmp" \
+  | kubeseal --format yaml \
+    --controller-namespace sealed-secrets \
+  > "$MANIFESTS/immich/immich-config.yaml"
+rm "$_immich_config_tmp"
+echo "  -> $MANIFESTS/immich/immich-config.yaml"
 
 seal cert-manager cloudflare-api-token \
   "$MANIFESTS/cert-manager/cloudflare-api-token.yaml" \
@@ -133,6 +179,11 @@ seal monitoring grafana-strava \
   "$MANIFESTS/monitoring/grafana-strava.yaml" \
   --from-literal=STRAVA_CLIENT_SECRET="$STRAVA_CLIENT_SECRET" \
   --from-literal=STRAVA_REFRESH_TOKEN="$STRAVA_REFRESH_TOKEN"
+
+seal monitoring grafana-strava-2 \
+  "$MANIFESTS/monitoring/grafana-strava-2.yaml" \
+  --from-literal=STRAVA2_CLIENT_SECRET="$STRAVA2_CLIENT_SECRET" \
+  --from-literal=STRAVA2_REFRESH_TOKEN="$STRAVA2_REFRESH_TOKEN"
 
 
 echo ""
