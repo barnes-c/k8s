@@ -60,8 +60,8 @@ resource "helm_release" "argocd" {
   namespace        = "argocd"
   create_namespace = true
   repository       = "https://argoproj.github.io/argo-helm"
-  chart     = "argo-cd"
-  version   = "9.4.5"
+  chart            = "argo-cd"
+  version          = "9.4.5"
 
   wait    = true
   timeout = 600
@@ -80,8 +80,8 @@ resource "kubectl_manifest" "apps_root" {
     apiVersion = "argoproj.io/v1alpha1"
     kind       = "Application"
     metadata = {
-      name      = "apps-root"
-      namespace = "argocd"
+      name       = "apps-root"
+      namespace  = "argocd"
       finalizers = ["resources-finalizer.argocd.argoproj.io"]
     }
     spec = {
