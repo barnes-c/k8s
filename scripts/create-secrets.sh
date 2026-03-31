@@ -43,6 +43,7 @@ IMMICH_DB_USER=$(rand32)
 IMMICH_DB_PASS=$(rand32)
 AUTHENTIK_DB_PASS=$(rand32)
 AUTHENTIK_SECRET_KEY=$(rand32)
+AUTHENTIK_BOOTSTRAP_PASSWORD=$(rand32)
 ARGOCD_CLIENT_ID=$(rand32)
 ARGOCD_CLIENT_SECRET=$(rand32)
 GRAFANA_CLIENT_ID=$(rand32)
@@ -75,7 +76,8 @@ seal immich immich-postgres-credentials \
 seal authentik authentik-credentials \
   "$MANIFESTS/authentik/authentik-credentials.yaml" \
   --from-literal=AUTHENTIK_POSTGRESQL__PASSWORD="$AUTHENTIK_DB_PASS" \
-  --from-literal=AUTHENTIK_SECRET_KEY="$AUTHENTIK_SECRET_KEY"
+  --from-literal=AUTHENTIK_SECRET_KEY="$AUTHENTIK_SECRET_KEY" \
+  --from-literal=AUTHENTIK_BOOTSTRAP_PASSWORD="$AUTHENTIK_BOOTSTRAP_PASSWORD"
 
 seal authentik authentik-oidc-clients \
   "$MANIFESTS/authentik/authentik-oidc-clients.yaml" \
@@ -188,3 +190,6 @@ seal monitoring grafana-strava-2 \
 
 echo ""
 echo "Done. Review the files, then commit and push."
+echo ""
+echo "=== Authentik akadmin bootstrap password (save this) ==="
+echo "$AUTHENTIK_BOOTSTRAP_PASSWORD"
