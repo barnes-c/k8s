@@ -96,7 +96,7 @@ cat > "$_immich_config_tmp" <<EOF
     "issuerUrl": "https://authentik.barnes.biz/application/o/immich/",
     "clientId": "$IMMICH_CLIENT_ID",
     "clientSecret": "$IMMICH_CLIENT_SECRET",
-    "callbackUrl": "https://immich.barnes.biz/auth/login",
+    "callbackUrl": "https://img.barnes.biz/auth/login",
     "scope": "openid email profile",
     "signingAlgorithm": "RS256",
     "storageLabelClaim": "preferred_username",
@@ -113,7 +113,7 @@ cat > "$_immich_config_tmp" <<EOF
     "enabled": false
   },
   "server": {
-    "externalDomain": "https://immich.barnes.biz",
+    "externalDomain": "https://img.barnes.biz",
     "loginPageMessage": ""
   },
   "storageTemplate": {
