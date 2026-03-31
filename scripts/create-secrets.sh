@@ -153,6 +153,11 @@ seal barnes-biz smtp-credentials \
   --from-literal=SMTP_USER="$SMTP_USER" \
   --from-literal=SMTP_PASS="$SMTP_PASS"
 
+seal authentik smtp-credentials \
+  "$MANIFESTS/authentik/smtp-credentials.yaml" \
+  --from-literal=AUTHENTIK_EMAIL__USERNAME="$SMTP_USER" \
+  --from-literal=AUTHENTIK_EMAIL__PASSWORD="$SMTP_PASS"
+
 seal monitoring grafana-oidc \
   "$MANIFESTS/monitoring/grafana-oidc.yaml" \
   --from-literal=GF_AUTH_GENERIC_OAUTH_CLIENT_ID="$GRAFANA_CLIENT_ID" \
