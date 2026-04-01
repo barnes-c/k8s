@@ -7,3 +7,4 @@ misconfiguration:
   scanners:
     - kubernetes
     - helm
+    - terraform
