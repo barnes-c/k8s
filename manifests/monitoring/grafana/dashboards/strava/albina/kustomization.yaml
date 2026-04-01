@@ -10,21 +10,21 @@ labels:
 generatorOptions:
   disableNameSuffixHash: true
   annotations:
-    grafana_folder: Strava/Chris
+    grafana_folder: strava/Albina
 
 configMapGenerator:
-  - name: grafana-dashboard-chris-activity-analysis
+  - name: grafana-dashboard-albina-activity-analysis
     files:
       - strava_activity_analysis.json
-  - name: grafana-dashboard-chris-activity-overview
+  - name: grafana-dashboard-albina-activity-overview
     files:
       - strava_activity_overview.json
-  - name: grafana-dashboard-chris-athlete-dashboard
+  - name: grafana-dashboard-albina-athlete-dashboard
     files:
       - strava_athlete_dashboard.json
-  - name: grafana-dashboard-chris-datasource
+  - name: grafana-dashboard-albina-datasource
     files:
       - strava_datasource.json
-  - name: grafana-dashboard-chris-segment-overview
+  - name: grafana-dashboard-albina-segment-overview
     files:
       - strava_segment_overview.json
