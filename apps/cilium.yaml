@@ -67,6 +67,12 @@ spec:
 
         hubble:
           enabled: false
+
+        encryption:
+          enabled: true
+          type: wireguard
+          wireguard:
+            userspaceFallback: false
   destination:
     server: https://kubernetes.default.svc
     namespace: kube-system

@@ -22,6 +22,13 @@ locals {
       resources = { requests = { cpu = "25m", memory = "64Mi" }, limits = { cpu = "500m", memory = "256Mi" } }
     }
     hubble = { enabled = false }
+    encryption = {
+      enabled  = true
+      type     = "wireguard"
+      wireguard = {
+        userspaceFallback = false
+      }
+    }
   }
 
   argocd_default_values = {
