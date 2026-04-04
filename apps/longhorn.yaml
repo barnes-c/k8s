@@ -17,6 +17,7 @@ spec:
         defaultSettings:
           defaultDataPath: /var/mnt/storage0
           defaultReplicaCount: "1"
+          replicaAutoBalance: disabled
         preUpgradeChecker:
           jobEnabled: false
         longhornManager:
@@ -40,6 +41,15 @@ spec:
             limits:
               cpu: 200m
               memory: 128Mi
+        csi:
+          attacher:
+            replicas: 1
+          provisioner:
+            replicas: 1
+          resizer:
+            replicas: 1
+          snapshotter:
+            replicas: 1
   destination:
     server: https://kubernetes.default.svc
     namespace: longhorn-system
