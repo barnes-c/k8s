@@ -19,5 +19,6 @@ Applications are deployed in order using `argocd.argoproj.io/sync-wave` annotati
 | -1   | Gateway             | Gateway API infrastructure |
 | -1   | Sealed Secrets      | Secret encryption          |
 | 0    | Cert-Manager Config | ClusterIssuer + Certs      |
+| 0    | Porkbun Webhook     | ACME DNS-01 solver         |
 | 0    | ArgoCD              | GitOps controller          |
 | 0    | Monitoring          | Prometheus + Grafana       |

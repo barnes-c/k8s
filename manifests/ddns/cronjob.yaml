@@ -6,7 +6,7 @@ metadata:
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: cloudflare-ddns
+  name: porkbun-ddns
   namespace: ddns
 spec:
   schedule: "17 * * * *"
@@ -28,52 +28,75 @@ spec:
             - name: ddns
               image: docker.io/curlimages/curl:8.21.0@sha256:7c12af72ceb38b7432ab85e1a265cff6ae58e06f95539d539b654f2cfa64bb13
               env:
-                - name: CF_API_TOKEN
+                - name: PORKBUN_API_KEY
                   valueFrom:
                     secretKeyRef:
-                      name: cloudflare-api-token
-                      key: api-token
+                      name: porkbun-api-key
+                      key: api-key
+                - name: PORKBUN_SECRET_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: porkbun-api-key
+                      key: secret-api-key
                 - name: ZONE
                   value: barnes.biz
+                # Subdomain labels, not FQDNs -- Porkbun addresses records by label, with
+                # the empty string for the apex. "@" is spelled out here and translated
+                # below to keep the list readable.
                 - name: RECORDS
-                  value: "barnes.biz,*.barnes.biz"
+                  value: "@,*"
               command:
                 - sh
                 - -c
                 - |
-                  set -eu
-                  api() { curl -sS -H "Authorization: Bearer $CF_API_TOKEN" \
-                                  -H "Content-Type: application/json" "$@"; }
-                  B=https://api.cloudflare.com/client/v4
+                  # -f: RECORDS contains "*", which would otherwise glob against the cwd
+                  # when the loop word-splits it.
+                  set -euf
 
-                  IP=$(curl -4 -sS https://cloudflare.com/cdn-cgi/trace | sed -n 's/^ip=//p')
+                  B=https://api.porkbun.com/api/json/v3
+                  AUTH="\"apikey\":\"$PORKBUN_API_KEY\",\"secretapikey\":\"$PORKBUN_SECRET_API_KEY\""
+
+                  # Porkbun authenticates by body, not header, and every call is a POST.
+                  api() { curl -4 -sS -X POST -H "Content-Type: application/json" \
+                               --data "{$AUTH${2:+,$2}}" "$B/$1"; }
+                  ok() { echo "$1" | grep -q '"status":"SUCCESS"'; }
+
+                  # 60s so a changed public IP propagates quickly. Porkbun's docs and
+                  # several clients claim a 600s floor; the API accepts and stores 60.
+                  TTL=60
+
+                  RESP=$(api ping)
+                  ok "$RESP" || { echo "porkbun ping failed: $RESP" >&2; exit 1; }
+                  IP=$(echo "$RESP" | sed -n 's/.*"yourIp":"\([0-9.]*\)".*/\1/p')
                   case "$IP" in
                     *.*.*.*) ;;
                     *) echo "could not determine public IPv4 (got '$IP')" >&2; exit 1 ;;
                   esac
 
-                  ZID=$(api "$B/zones?name=$ZONE" | sed -n 's/.*"id":"\([0-9a-f]\{32\}\)".*/\1/p' | head -1)
-                  [ -n "$ZID" ] || { echo "zone $ZONE not found (token needs Zone:Read)" >&2; exit 1; }
+                  for SUB in $(echo "$RECORDS" | tr ',' ' '); do
+                    if [ "$SUB" = "@" ]; then
+                      NAME=""; FQDN="$ZONE"
+                    else
+                      NAME="$SUB"; FQDN="$SUB.$ZONE"
+                    fi
 
-                  echo "$RECORDS" | tr ',' '\n' | while read -r NAME; do
-                    [ -n "$NAME" ] || continue
-                    RESP=$(api "$B/zones/$ZID/dns_records?type=A&name=$NAME")
-                    RID=$(echo "$RESP" | sed -n 's/.*"id":"\([0-9a-f]\{32\}\)".*/\1/p' | head -1)
+                    RESP=$(api "dns/retrieveByNameType/$ZONE/A/$NAME")
+                    ok "$RESP" || { echo "lookup failed for $FQDN: $RESP" >&2; exit 1; }
                     CUR=$(echo "$RESP" | sed -n 's/.*"content":"\([0-9.]*\)".*/\1/p' | head -1)
 
-                    # proxied:false is deliberate -- proxying would put Cloudflare back in
-                    # the traffic path, which is the thing we removed the tunnels to avoid.
-                    BODY="{\"type\":\"A\",\"name\":\"$NAME\",\"content\":\"$IP\",\"ttl\":60,\"proxied\":false}"
-
-                    if [ -z "$RID" ]; then
-                      echo "creating $NAME -> $IP"
-                      api -X POST "$B/zones/$ZID/dns_records" --data "$BODY" >/dev/null
+                    if [ -z "$CUR" ]; then
+                      echo "creating $FQDN -> $IP"
+                      RESP=$(api "dns/create/$ZONE" \
+                        "\"name\":\"$NAME\",\"type\":\"A\",\"content\":\"$IP\",\"ttl\":\"$TTL\"")
                     elif [ "$CUR" != "$IP" ]; then
-                      echo "updating $NAME: $CUR -> $IP"
-                      api -X PATCH "$B/zones/$ZID/dns_records/$RID" --data "$BODY" >/dev/null
+                      echo "updating $FQDN: $CUR -> $IP"
+                      RESP=$(api "dns/editByNameType/$ZONE/A/$NAME" \
+                        "\"content\":\"$IP\",\"ttl\":\"$TTL\"")
                     else
-                      echo "$NAME already $IP"
+                      echo "$FQDN already $IP"
+                      continue
                     fi
+                    ok "$RESP" || { echo "write failed for $FQDN: $RESP" >&2; exit 1; }
                   done
               resources:
                 requests:

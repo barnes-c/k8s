@@ -60,7 +60,10 @@ Gotchas:
 - **Two Gateways**: `main` (`192.168.1.201`, public) and `internal` (`192.168.1.202`, LAN-only
   — the Freebox forwards 80/443 to `.201` only). Admin surfaces attach to `internal`.
 - **Secrets** are sealed by `scripts/create-secrets.sh`. SealedSecrets are namespace-scoped,
-  so a value used in two namespaces is sealed twice (see the Cloudflare token).
+  so a value used in two namespaces is sealed twice (see the Porkbun API key).
+- **DNS is Porkbun**, not Cloudflare. Both the ACME DNS-01 solver and the ddns CronJob go
+  through the Porkbun API; the solver is a vendored third-party webhook, see
+  `manifests/cert-manager-webhook-porkbun/README.md`.
 - **`gmake`, not `make`** — macOS ships GNU Make 3.81; the Makefile needs 4.0+.
 
 ## Where decision context lives

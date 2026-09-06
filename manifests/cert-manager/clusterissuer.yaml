@@ -10,8 +10,17 @@ spec:
     privateKeySecretRef:
       name: letsencrypt-account-key
     solvers:
+      # DNS-01, not HTTP-01: the certificate covers *.barnes.biz and a wildcard cannot be
+      # validated over HTTP-01. Porkbun has no built-in cert-manager solver, hence the
+      # webhook in manifests/cert-manager-webhook-porkbun.
       - dns01:
-          cloudflare:
-            apiTokenSecretRef:
-              name: cloudflare-api-token
-              key: api-token
+          webhook:
+            groupName: acme.barnes.biz
+            solverName: porkbun
+            config:
+              apiKey:
+                name: porkbun-api-key
+                key: api-key
+              secretApiKey:
+                name: porkbun-api-key
+                key: secret-api-key

@@ -53,7 +53,8 @@ IMMICH_CLIENT_SECRET=$(rand32)
 
 echo "=== Prompting for external credentials ==="
 
-prompt CF_API_TOKEN        "Cloudflare API token (cert-manager)"
+prompt PORKBUN_API_KEY         "Porkbun API key (pk1_...)"
+prompt PORKBUN_SECRET_API_KEY  "Porkbun secret API key (sk1_...)"
 prompt SMTP_USER             "SMTP username (barnes-biz)" false
 prompt SMTP_PASS             "SMTP password (barnes-biz)"
 prompt STRAVA_CLIENT_SECRET   "Strava client secret (account 115101)"
@@ -129,15 +130,17 @@ kubectl create secret generic immich-config \
 rm "$_immich_config_tmp"
 echo "  -> $MANIFESTS/immich/immich-config.yaml"
 
-seal cert-manager cloudflare-api-token \
-  "$MANIFESTS/cert-manager/cloudflare-api-token.yaml" \
-  --from-literal=api-token="$CF_API_TOKEN"
+seal cert-manager porkbun-api-key \
+  "$MANIFESTS/cert-manager/porkbun-api-key.yaml" \
+  --from-literal=api-key="$PORKBUN_API_KEY" \
+  --from-literal=secret-api-key="$PORKBUN_SECRET_API_KEY"
 
-# Same token, sealed again for the ddns namespace. SealedSecrets are namespace-scoped by
+# Same keys, sealed again for the ddns namespace. SealedSecrets are namespace-scoped by
 # default, so the ciphertext is not portable between namespaces.
-seal ddns cloudflare-api-token \
-  "$MANIFESTS/ddns/cloudflare-api-token.yaml" \
-  --from-literal=api-token="$CF_API_TOKEN"
+seal ddns porkbun-api-key \
+  "$MANIFESTS/ddns/porkbun-api-key.yaml" \
+  --from-literal=api-key="$PORKBUN_API_KEY" \
+  --from-literal=secret-api-key="$PORKBUN_SECRET_API_KEY"
 
 seal barnes-biz smtp-credentials \
   "$MANIFESTS/barnes-biz/smtp-credentials.yaml" \
