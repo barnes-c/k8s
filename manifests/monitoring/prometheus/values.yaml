@@ -2,7 +2,9 @@ fullnameOverride: prometheus
 
 server:
   fullnameOverride: prometheus
-  retention: 7d
+  retention: 15d
+  # Under persistentVolume.size so blocks evict before the disk fills; base-2 units. See #59.
+  retentionSize: 8GB
   persistentVolume:
     enabled: true
     storageClass: longhorn
